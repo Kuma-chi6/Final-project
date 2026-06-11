@@ -53,10 +53,12 @@ int main(){
 
         cout << "Welcome, " << hero.name << "!\n\n"; 
 
-        enemy goblin = {"Goblin", 50, 10, 1, 50, 100};
-        enemy skeleton = {"Skeleton", 80, 15, 2, 75, 150};
+        enemy goblin = {"Goblin", 30, 10, 1, 50, 100};
+        enemy skeleton = {"Skeleton", 50, 15, 2, 75, 150};
         enemy dragon = {"Dragon", 200, 20, 3, 150, 250};
         enemy* currentEnemy = &goblin;
+
+        battleEnemy(hero, currentEnemy);
        
     }
 
@@ -299,7 +301,7 @@ void shop(player &hero){
 
     cout << "\n=== SHOP ===" << endl;
     cout << "Gold: " << hero.gold << endl;
-    cout << "===========" << endl;
+    cout << "=== SHOP ===" << endl;
     cout << "1. Buy Potion (20 Gold)" << endl;
     cout << "2. Buy Sword (50 Gold) - +10 Atk" << endl;
     cout << "3. Leave Shop" << endl;
