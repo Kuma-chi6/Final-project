@@ -8,18 +8,23 @@ using namespace std;
 struct player{
     string name;
     int hp = 100;
+    int baseAttack = 20;
     int attack = 20;
     int level = 1;
     int gold = 0;
     int exp = 0;
     int potion = 0;
     string item = "None";
+    bool hasSword = false;
 };
 
-struct goblin{
-    int hp = 30;
-    int attack = 10;
-    int level = 1;
+struct enemy{
+    string enemyName;
+    int hp ;
+    int attack;
+    int level;
+    int goldReward;
+    int expReward;
 };
 
 string playerName();
@@ -30,23 +35,30 @@ void displayMenu();
 void firstEnemy();
 void heal(player &hero);
 void viewStats(player &hero);
-void battleGoblin(player &hero, goblin &enemy);
+void battleEnemy(player &hero, enemy* currentEnemy);
+void equipSword(player &hero);
+void unequipSword(player &hero);
+void shop(player &hero);
 
-int main()
-{
+int main(){
     srand(time(0));
-    displayMenu();
-    cout << endl;
 
-    // create hero
-    player hero;
-    hero.name = playerName();
+    while (true){
+        displayMenu();
+        cout << endl;
 
-    cout << "Welcome, " << hero.name << "!\n\n"; 
+        // create hero
+        player hero;
+        hero.name = playerName();
 
-    goblin enemy1;
-    battleGoblin(hero, enemy1);
+        cout << "Welcome, " << hero.name << "!\n\n"; 
 
+        enemy goblin = {"Goblin", 50, 10, 1, 50, 100};
+        enemy skeleton = {"Skeleton", 80, 15, 2, 75, 150};
+        enemy dragon = {"Dragon", 200, 20, 3, 150, 250};
+        enemy* currentEnemy = &goblin;
+       
+    }
 
    return 0;
 }
@@ -173,6 +185,7 @@ bool askMathQuestions(int level, player &hero){
 void heal(player &hero){
     if(hero.potion <= 0){
         cout << "\nNo more potion gng...\n";
+        cout << "Buy potion from the shop after defeating enemies\n";
         return;
     }
 
@@ -183,7 +196,9 @@ void heal(player &hero){
 
     if(hero.hp > 100) hero.hp = 100;
     cout << "\n==============================" << endl;
+    cout << "\nYou used a potion! (" << hero.potion << " left)" << endl;
     cout << "You healed " << healAmount << " Current HP: " << hero.hp << endl;
+    cout << "Current HP: " << hero.hp << endl;
     cout << "==============================" << endl;
 }
 
@@ -200,14 +215,14 @@ void viewStats(player &hero){
     cout << "=== STATS ===" << endl;
 }
 
-void battleGoblin(player &hero, goblin &enemy){
-    while(hero.hp > 0 && enemy.hp > 0){
-        int choice;
+void battleEnemy(player &hero, enemy* currentEnemy){
+    while(hero.hp > 0 && currentEnemy->hp > 0){
+    int choice;
 
         // Display Stats
         cout << "\n=============" << endl;
         cout << "Hero HP: " << hero.hp << endl;
-        cout << "Goblin HP: " << enemy.hp << endl;
+        cout << currentEnemy->enemyName << " HP: " << currentEnemy->hp << endl;
          cout << "=============" << endl;
 
         // Menu
@@ -218,7 +233,7 @@ void battleGoblin(player &hero, goblin &enemy){
         switch(choice){
             case 1:
                 if(askMathQuestions(hero.level, hero)){
-                    enemy.hp -= hero.attack;
+                    currentEnemy->hp -= hero.attack;
                     cout << "\n============================" << endl;
                     cout << "Correct you dealt " << hero.attack << " damage!\n";
                     cout << "============================" << endl;
@@ -244,40 +259,93 @@ void battleGoblin(player &hero, goblin &enemy){
                 continue;
         }
 
-        if(enemy.hp > 0 && hero.hp > 0){
-            hero.hp -= enemy.attack;
+        if(currentEnemy->hp > 0 && hero.hp > 0){
+            hero.hp -= currentEnemy->attack;
             cout << "\n==================" << endl;
-            cout << "Goblin attacks!" << endl;
-            cout << "You lost: " << enemy.attack << " HP.\n";
+            cout << currentEnemy->enemyName << " attacks!" << endl;
+            cout << "You lost: " << currentEnemy->attack << " HP.\n";
             cout << "==================" << endl;
         }
 
         if(hero.hp <= 0){
             cout << "\nYou Died Gng! Game Over!\n";
         }
-        else if(enemy.hp <= 0){
-            cout << "\nGoblin Defeated!\n";
+        else if(currentEnemy->hp <= 0){
+            cout << "\n" << currentEnemy->enemyName << " Defeated!\n";
 
-            hero.gold += 50;
-            hero.exp += 100;
+            hero.gold += currentEnemy->goldReward;
+            hero.exp += currentEnemy->expReward;
 
-            cout << "\n+50 Gold" << endl;
-            cout << "+100 XP" << endl;
-            
-            int buy;
-            
-            cout << "\nPotion cost a 20 gold. You have " << hero.gold << " gold.\n";
-            cout << "Buy a potion? (1) (2): ";
-            cin >> buy;
+            cout << "\n+ " << currentEnemy->goldReward << " Gold\n";
+            cout << "+ " << currentEnemy->expReward << " Exp\n";
+            hero.level++;
+            shop(hero);
+        }
+    }
+}
 
-            if(buy == 1 && hero.gold >= 20){
+void equipSword(player &hero){
+    if(hero.hasSword){
+        hero.item = "Sword (+10 ATK)";
+        hero.attack = hero.baseAttack + 10;
+        cout << "\nYou have equipped the sword! Attack increased to " << hero.attack << "!\n";
+    } else{
+        cout << "\nYou dont have a sword";
+    }
+}
+
+void shop(player &hero){
+    int choice;
+
+    cout << "\n=== SHOP ===" << endl;
+    cout << "Gold: " << hero.gold << endl;
+    cout << "===========" << endl;
+    cout << "1. Buy Potion (20 Gold)" << endl;
+    cout << "2. Buy Sword (50 Gold) - +10 Atk" << endl;
+    cout << "3. Leave Shop" << endl;
+    cout << "Choice: " << endl;
+    cin >> choice;
+
+    switch(choice){
+        case 1:
+            if(hero.gold >= 20){
                 hero.potion++;
                 hero.gold -= 20;
-
-                cout << "\nBought a potion! Total potions: " << hero.potion << endl;
-                cout << "Gold Left: " << hero.gold << endl;
+                
+                cout << "\nBought a potion! Total: " << hero.potion << endl;
+                cout << "Gold left: " << hero.gold << endl;
             }
-        }
+            else{
+                cout << "\nNot Enough Gold." << endl;
+            }
+            break;
+        case 2:
+            if(hero.gold >= 50 && !hero.hasSword){
+                hero.gold -= 50;
+                hero.hasSword = true;
+                cout << "\nYou bought a sword\n";
+                cout <<  "Gold left: " << hero.gold << endl;
+
+                char equipNow;
+                cout << "Equip now? (y) (n): ";
+                cin >> equipNow;
+
+                if(equipNow == 'y' || equipNow == 'Y'){
+                    equipSword(hero);
+                }
+                else if(hero.hasSword){
+                    cout << "\nYou already own a sword!\n";
+                }
+                else{
+                    cout << "\nNot enough gold! need 50 gold.";
+                }
+            }
+            break;
+        case 3:
+            cout << "\nLeaving Shop....\n";
+            break;
+        default:
+            cout << "\nInvalid choice\n";
     }
 }
 
