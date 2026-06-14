@@ -5,6 +5,7 @@
 #include <string>
 using namespace std;
 
+// Player structure - stores all hero information
 struct player{
     string name;
     int hp = 100;
@@ -18,19 +19,21 @@ struct player{
     int expNeeded = 100;
     string item = "None";
     bool hasSword = false;
-    int totalCorrect = 0;
-    int totalWrong = 0; 
+    int totalCorrect = 0;  // Tracks math performance for final stats
+    int totalWrong = 0;
 };
 
+// Enemy structure - defines enemy stats and rewards
 struct enemy{
     string enemyName;
-    int hp ;
+    int hp;
     int attack;
     int level;
     int goldReward;
     int expReward;
 };
 
+// Function prototypes
 string playerName();
 void startUpMenu();
 bool generateQuestions(int level);
@@ -57,53 +60,58 @@ void playAgain();
 void gameOver(player &hero, enemy *currentEnemy);
 
 int main(){
-    srand(time(0));
+    srand(time(0));  // Seed random number generator for different math questions each game
     startUpMenu();
 
     player hero;
-        displayMenu();
-        cout << endl;
+    displayMenu();
+    cout << endl;
 
-        // create hero
-        hero.name = playerName();
+    hero.name = playerName();
+    cout << "Welcome, " << hero.name << "!\n\n"; 
 
-        cout << "Welcome, " << hero.name << "!\n\n"; 
+    // Array of 3 enemies fought in order: Goblin (easy) -> Skeleton (medium) -> Dragon (hard)
+    enemy enemies[] = {
+        {"Goblin", 30, 10, 1, 50, 100},
+        {"Skeleton", 75, 15, 2, 75, 150},
+        {"Dragon", 150, 20, 3, 150, 250}
+    };
 
-        enemy enemies[] = {
-            {"Goblin", 30, 10, 1, 50, 100},
-            {"Skeleton", 75, 15, 2, 75, 150},
-            {"Dragon", 150, 20, 3, 150, 250}
-        };
+    int totalEnemies = 3;
 
-        int totalEnemies = 3;
-
-        for(int i = 0; i < totalEnemies; i++){
-            if(i == 0){
-                firstEnemy();
-            }
-            else if(i == 1){
-                secondEnemy();
-            }
-            else if(i == 2){
-                finalBoss();
-            }
-            battleEnemy(hero, &enemies[i]);
-
-            if (hero.hp <= 0){
-               gameOver(hero, &enemies[i]);
-               return 0;
-            }
-            if(i < totalEnemies - 1){
-                shop(hero);
-            }
+    // Loop through each enemy and fight them one by one
+    for(int i = 0; i < totalEnemies; i++){
+        // Show different introduction based on which enemy
+        if(i == 0){
+            firstEnemy();
         }
+        else if(i == 1){
+            secondEnemy();
+        }
+        else if(i == 2){
+            finalBoss();
+        }
+        
+        battleEnemy(hero, &enemies[i]);  // Pass pointer to current enemy
 
-        displayEndingStats(hero);
-        playAgain();    
+        if (hero.hp <= 0){
+           gameOver(hero, &enemies[i]);
+           return 0;
+        }
+        
+        // Shop appears after each enemy except the final boss
+        if(i < totalEnemies - 1){
+            shop(hero);
+        }
+    }
+
+    displayEndingStats(hero);
+    playAgain();    
 
    return 0;
 }
 
+// Shows main menu with Start Game, How to Play, and Exit options
 void startUpMenu(){
     int choice;
     bool validInput = false;
@@ -119,6 +127,7 @@ void startUpMenu(){
         cout << "Choice: ";
         cin >> choice;
 
+        // Handle non-numeric input (like letters)
         if(cin.fail()){
             cin.clear();
             cin.ignore(1000, '\n');
@@ -156,6 +165,7 @@ void startUpMenu(){
     }
 }
 
+// Displays the game title banner
 void displayMenu(){
     cin.ignore();
     cout << "====================================" << endl;
@@ -166,14 +176,15 @@ void displayMenu(){
     cout << "====================================" << endl; 
 }
 
+// Gets player name, validates only letters/spaces, and capitalizes first letters
 string playerName(){
     string heroName;
     while (true){
-
         cout << "Enter Hero Name: ";
         getline(cin, heroName);
         cout << endl;
 
+        // Check if name contains only letters and spaces
         bool valid = true;
         for(size_t i = 0; i < heroName.length(); i++){
             if(!isalpha(heroName[i]) && !isspace(heroName[i])){
@@ -189,6 +200,7 @@ string playerName(){
             cout << "Name can only contain letters and spaces!" << endl;
         }
         else{
+            // Capitalize first letter of each word, rest lowercase
             bool newWord = true;
             for(size_t i = 0; i < heroName.length(); i++){
                 if(isspace(heroName[i])){
@@ -207,6 +219,7 @@ string playerName(){
     }
 }
 
+// Introduction message for first enemy (Goblin)
 void firstEnemy(){
     cout << "=========================\n\n";
     cout << "Your Journey Begins....." << endl;
@@ -214,6 +227,7 @@ void firstEnemy(){
     cout << "\n=========================\n";
 }
 
+// Introduction message for second enemy (Skeleton)
 void secondEnemy(){
     cout << "\n===========================" << endl;
     cout << "          LEVEL 2           " << endl;
@@ -224,6 +238,7 @@ void secondEnemy(){
     cout << "===============================" << endl;
 }
 
+// Introduction message for final boss (Dragon)
 void finalBoss(){
     cout << "\n===========================" << endl;
     cout << "          LEVEL 3           " << endl;
@@ -234,6 +249,8 @@ void finalBoss(){
     cout << "===================================================" << endl;
 }
 
+// Returns math operator based on player level
+// Level 1: + or - (easy), Level 2: x (multiplication), Level 3: + or - (harder)
 char getOperator(int level){
     char easy[] = {'+', '-'};
     char medium = 'x';
@@ -250,6 +267,7 @@ char getOperator(int level){
     }
 }
 
+// Asks math question and returns true if answer is correct, false if wrong
 bool askMathQuestions(int level, player &hero){
     int num1 = rand() % 100 + 1;
     int num2 = rand() % 100 + 1;
@@ -261,6 +279,7 @@ bool askMathQuestions(int level, player &hero){
 
     switch(hero.level){
         case 1:
+            // Level 1: Simple addition or subtraction
             op = getOperator(1);
             cout << "\nSolve to attack:\n";
             cout << num1 << " " << op << " " << num2 << " " << "= " << "?\n";
@@ -273,6 +292,7 @@ bool askMathQuestions(int level, player &hero){
             return answer == correctAnswer;
         
         case 2:
+            // Level 2: Multiplication
             cout << "Solve to attack:\n";
             cout << num1 << " " << "*" << " " << num2 << " " << "= " << "?\n";
             cout << "\nAnswer: ";
@@ -282,6 +302,7 @@ bool askMathQuestions(int level, player &hero){
             return answer == correctAnswer;
 
         case 3:
+            // Level 3: Mixed operations (product then add/subtract)
             num3 = rand() % 100 + 1;
             op2 = (rand() % 2 == 0) ? '+' : '-';
 
@@ -301,6 +322,7 @@ bool askMathQuestions(int level, player &hero){
     return false;
 }
 
+// Uses a potion to restore 30 HP (cannot exceed max HP)
 void heal(player &hero){
     if(hero.potion <= 0){
         cout << "\nNo more potion gng...\n";
@@ -321,6 +343,7 @@ void heal(player &hero){
     cout << "==============================" << endl;
 }
 
+// Equips sword to increase attack by 10
 void equipSword(player &hero){
     if(hero.hasSword){
         hero.item = "Sword (+10 ATK)";
@@ -353,6 +376,7 @@ void unequipSword(player &hero){
     }
 }
 
+// Menu for equipping or unequipping the sword
 void swordMenu(player &hero){
     int choice;
     if(hero.hasSword){
@@ -383,6 +407,7 @@ void swordMenu(player &hero){
     }
 }
 
+// Updates the experience needed for next level based on current level
 void updateExpNeeded(player &hero){
     if(hero.level == 1){
         hero.expNeeded = 100;
@@ -395,6 +420,7 @@ void updateExpNeeded(player &hero){
     }
 }
 
+// Handles level up when player gains enough experience
 void levelUp(player &hero){
     if(hero.level >= 3){
         cout << "\nYou're already at MAX LVL!\n";
@@ -428,6 +454,7 @@ void levelUp(player &hero){
     }
 }
 
+// Displays all current player statistics
 void viewStats(player &hero){
     cout << "\n=== STATS ===" << endl;
     cout << "Hero: " << hero.name << endl;
@@ -441,26 +468,27 @@ void viewStats(player &hero){
     cout << "=== STATS ===" << endl;
 
     swordMenu(hero);
-    
 }
 
+// Main battle function - handles combat between hero and enemy
 void battleEnemy(player &hero, enemy* currentEnemy){
     while(hero.hp > 0 && currentEnemy->hp > 0){
     int choice;
 
-        // Display Stats
+        // Display current health of both fighters
         cout << "\n================" << endl;
         cout << "Hero HP: " << hero.hp << endl;
         cout << currentEnemy->enemyName << " HP: " << currentEnemy->hp << endl;
          cout << "================" << endl;
 
-        // Menu
+        // Battle menu options
         cout << "\n1. Attack \n2. Heal \n3. View Stats \n4. Equip/Unequip Sword \n5. Run" << endl;
         cout << "\nChoice: ";
         cin >> choice;
 
         switch(choice){
             case 1:
+                // Attack requires answering math question
                 if(askMathQuestions(hero.level, hero)){
                     hero.totalCorrect++;
 
@@ -492,7 +520,7 @@ void battleEnemy(player &hero, enemy* currentEnemy){
                 break;
             case 3:
                 viewStats(hero);
-                continue;
+                continue;  // Skip enemy attack this turn
                 break;
             case 4:
                 if(!hero.hasSword){
@@ -521,6 +549,7 @@ void battleEnemy(player &hero, enemy* currentEnemy){
                 continue;
         }
 
+        // Enemy attacks back if still alive
         if(currentEnemy->hp > 0 && hero.hp > 0){
             hero.hp -= currentEnemy->attack;
             cout << "\n==================" << endl;
@@ -529,9 +558,11 @@ void battleEnemy(player &hero, enemy* currentEnemy){
             cout << "==================" << endl;
         }
 
+        // Check if player died
         if(hero.hp <= 0){
             cout << "\nYou Died Gng! Game Over!\n";
         }
+        // Check if enemy died
         else if(currentEnemy->hp <= 0){
             cout << "\n" << currentEnemy->enemyName << " Defeated!\n";
 
@@ -545,6 +576,7 @@ void battleEnemy(player &hero, enemy* currentEnemy){
     }
 }
 
+// Shop system - buy potions and sword with gold
 void shop(player &hero){
     int choice;
 
@@ -606,6 +638,7 @@ void shop(player &hero){
     }
 }
 
+// Game over screen when player dies
 void gameOver(player &hero, enemy *currentEnemy){
     cout << "\n=====================================\n";
     cout << "\n             GAME OVER               \n";
@@ -631,9 +664,9 @@ void gameOver(player &hero, enemy *currentEnemy){
         cout << "\nThanks for playing!" << endl;
         return;
     }
-
 }
 
+// Displays basic player stats (HP, attack, level, gold, etc.)
 void displayBasicStats(player &hero){
     cout << "\n=== STATS ===" << endl;
     cout << "Hero: " << hero.name << endl;
@@ -646,6 +679,7 @@ void displayBasicStats(player &hero){
     cout << "Item: " << hero.item << endl; 
 }
 
+// Displays math performance and accuracy rating
 void displayMathStats(player &hero){
     cout << "\n=== MATH PERFORMANCE ===" << endl;
     cout << "Correct Answers: " << hero.totalCorrect << endl;
@@ -665,6 +699,7 @@ void displayMathStats(player &hero){
     }
 }
 
+// Displays all ending stats when game is completed
 void displayEndingStats(player &hero){
     cout << "\n===================";
     cout << "\n    FINAL STATS    ";
@@ -689,6 +724,7 @@ void displayEndingStats(player &hero){
     }
 }
 
+// Victory screen when player defeats all enemies
 void endingMenu(player &hero){
         cout << "\n=====================================";
         cout << "\n       CONGRATULATIONS YOU WIN!      ";
@@ -699,6 +735,7 @@ void endingMenu(player &hero){
         cout << "Hero Level: " << hero.level << endl;
 }
 
+// Asks player if they want to play again after winning
 void playAgain(){
     int choice;
 
